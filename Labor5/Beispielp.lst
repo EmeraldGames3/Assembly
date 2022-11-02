@@ -1,0 +1,49 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+     9                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    10                                  
+    11                                  ; our data is declared here (the variables needed by our program)
+    12                                  segment data use32 class=data
+    13 00000000 5777                        a dw 0111011101010111b
+    14 00000002 BE9B                        b dw 1001101110111110b
+    15 00000004 0000                        c dw 0
+    16                                  
+    17                                  ; our code starts here
+    18                                  segment code use32 class=code
+    19                                      start:
+    20 00000000 66BB0000                        mov bx, 0
+    21 00000004 66A1[02000000]                  mov ax, [b]
+    22                                          
+    23 0000000A 66BB0000                        mov bx, 0
+    24                                          
+    25 0000000E 66B8001C                        mov ax, 0001110000000000b
+    26 00000012 B10A                            mov cl, 10
+    27 00000014 66D3C8                          ror ax, cl
+    28 00000017 6609C3                          or bx, ax
+    29                                          
+    30 0000001A 6683CB78                        or bx, 0000000001111000b
+    31                                          
+    32 0000001E 66A1[00000000]                  mov ax, [a]
+    33 00000024 6683E01E                        and ax, 0000000000011110b
+    34 00000028 B106                            mov cl, 6
+    35 0000002A 66D3C0                          rol ax, cl
+    36 0000002D 6609C3                          or bx, ax
+    37                                          
+    38 00000030 6681E3FFE7                      and bx, 1110011111111111b
+    39                                          
+    40 00000035 66A1[02000000]                  mov ax, [b]
+    41 0000003B 66F7D0                          not ax
+    42 0000003E 66D3C0                          rol ax, cl
+    43 00000041 6609C3                          or bx, ax
+    44                                          
+    45 00000044 66891D[04000000]                mov [c], bx
+    46                                          
+    47 0000004B 6A00                            push 0
+    48                                          
+    49 0000004D FF15[00000000]                  call [exit]
