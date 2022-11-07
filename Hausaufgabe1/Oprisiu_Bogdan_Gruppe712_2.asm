@@ -35,7 +35,7 @@ segment code use32 class=code
         
         mov al, [a]
         cbw; ax = a
-        add ax,bx; ax = a + b * c = (-1) + 8 = 7
+        add ax, bx; ax = a + b * c = (-1) + 8 = 7
         sub ax, 9; ax = a + b * c - 9 = 7 - 9 = -2
         
         mov bx, ax; bx = a + b * c - 9

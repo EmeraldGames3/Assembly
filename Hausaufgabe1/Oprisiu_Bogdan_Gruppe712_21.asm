@@ -36,7 +36,7 @@ segment code use32 class=code
         mov dx, 0; dx:ax = a*a = 4
         mov bx, [b]
         
-        div bx; ax = a*a / b = 4 / 2 = 2
+        div bx; ax = dx:ax / bx =  a*a / b = 4 / 2 = 2
         mov dx, 0
         mov cx, ax; cx = a*a / b
         mov ax, [b]
