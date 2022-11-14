@@ -10,14 +10,14 @@
     10                                  
     11                                  ; our data is declared here (the variables needed by our program)
     12                                  segment data use32 class=data
-    13                                      ;r dd 100100010000010000100 000000 01000b
+    13                                      ;r dd 10010001000001000010000000001000b
     14                                      ;t dd 01000010000000001000000100001001b
-    15 00000000 08200491                    r dd 1001_0001_0000_0100_0010_0000_0000_1000b
-    16 00000004 09810042                    t dd 0100_0010_0000_0000_1000_0001_0000_1001b
-    17 00000008 00000000                    q dd 00000000000000000000000000000000b
-    18                                      ;q = 0000000 100000100101000010 0100000
-    19                                      ;    0100000 100000000001000010 0100000
-    20                                      ;r^t=1101001 100000100101000010 0000001
+    15                                      ;r^t= 11010011000001001010000100000001
+    16 00000000 08200491                    r dd 10010001000001000010000000001000b
+    17 00000004 09810042                    t dd 01000010000000001000000100001001b
+    18 00000008 00000000                    q dd 00000000000000000000000000000000b
+    19                                      ;q = 0000000 1000001001010000100100000
+    20                                      ;    
     21                                  
     22                                  ; our code starts here
     23                                  segment code use32 class=code
@@ -29,22 +29,25 @@
     29                                          
     30 00000014 A1[04000000]                    mov eax, [t]
     31 00000019 2500FC0100                      and eax, 00000000000000011111110000000000b; eax enthalt die bits 10-16 von t
-    32 0000001E C1E80A                          shr eax, 10; eax enthalt auf die position 0-6 die bits 10-16 von t
-    33                                          
-    34 00000021 8B1D[04000000]                  mov ebx, [t]
-    35 00000027 8B0D[00000000]                  mov ecx, [r]
-    36 0000002D 31D9                            xor ecx, ebx; ecx = r xor t = 1101001100000100100000100000001
-    37 0000002F 81E1807D0B41                    and ecx, 0000000_111111111111111111_0000000; ecx = 000000_ die bits 7 - 24 von r xor t_000000 = 0000000 100000100101000010 0000000
-    37          ******************       warning: dword data exceeds bounds [-w+number-overflow]
-    38 00000035 09C8                            or eax, ecx; eax = 0000000_ die bits 7 - 24 von r xor t_ die bits 10-16 von t
-    39                                  
-    40 00000037 8B0D[00000000]                  mov ecx, [r]
-    41 0000003D 81E1E00F0000                    and ecx, 00000000000000000000111111100000b
-    42 00000043 C1E114                          shl ecx, 20; die bits 5-11 von r _000000000000000000000000
-    43 00000046 09C8                            or eax, ecx; die bits 5-11 von r_ die bits 7 - 24 von r xor t_ die bits 10-16 von t
-    44                                          
-    45 00000048 A3[08000000]                    mov [q], eax 
-    46                                          
-    47                                          ; exit(0)
-    48 0000004D 6A00                            push    dword 0      ; push the parameter for exit onto the stack
-    49 0000004F FF15[00000000]                  call    [exit]       ; call exit to terminate the program
+    32                                          ;eax =   00000000000000001000000000000000
+    33 0000001E C1E80A                          shr eax, 10; eax enthalt auf die position 0-6 die bits 10-16 von t
+    34                                          ;eax =   00000000000000000000000000100000
+    35                                          
+    36 00000021 8B1D[04000000]                  mov ebx, [t]
+    37 00000027 8B0D[00000000]                  mov ecx, [r]
+    38 0000002D 31D9                            xor ecx, ebx; ecx = r xor t = 1101001100000100100000100000001
+    39 0000002F 81E180FFFF01                    and ecx, 00000001111111111111111110000000b; ecx = 000000_ die bits 7 - 24 von r xor t_000000 = 00000001000001001010000100000000
+    40 00000035 09C8                            or eax, ecx; eax = 0000000_ die bits 7 - 24 von r xor t_ die bits 10-16 von t
+    41                                  
+    42 00000037 B900000000                      mov ecx, 0
+    43 0000003C BB00000000                      mov ebx, 0
+    44 00000041 8B0D[00000000]                  mov ecx, [r]
+    45 00000047 81E1E00F0000                    and ecx, 00000000000000000000111111100000b
+    46 0000004D C1E114                          shl ecx, 20; die bits 5-11 von r _000000000000000000000000
+    47 00000050 09C8                            or eax, ecx; die bits 5-11 von r_ die bits 7 - 24 von r xor t_ die bits 10-16 von t
+    48                                          
+    49 00000052 A3[08000000]                    mov [q], eax 
+    50                                          
+    51                                          ; exit(0)
+    52 00000057 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    53 00000059 FF15[00000000]                  call    [exit]       ; call exit to terminate the program
