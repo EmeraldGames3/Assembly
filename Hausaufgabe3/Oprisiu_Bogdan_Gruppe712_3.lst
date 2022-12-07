@@ -1,0 +1,93 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+     9                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    10                                  
+    11                                  ; our data is declared here (the variables needed by our program)
+    12                                  ;ZweiFolgen(vonBytes)S1 und S2 werden angegeben.
+    13                                  ;Erstelle die Folge D,indem man die Elemente von
+    14                                  ;S1 von der linken Seite zur rechten Seite und die 
+    15                                  ;Elemente von S2 von der rechten Seite zur linken 
+    16                                  ;Seite verkettet werden.
+    17                                  
+    18                                  segment data use32 class=data
+    19 00000000 01020304                    s1 db 1, 2, 3, 4
+    20                                      l1 equ $-s1
+    21 00000004 0506070809                  s2 db 5, 6, 7, 8, 9
+    22                                      l2 equ $-s2
+    23 00000009 00<rept>                    d times l1+l2 db 0
+    24                                      ;d = 1, 2, 3, 4, 7, 6, 5
+    25                                  
+    26                                  ; our code starts here
+    27                                  segment code use32 class=code
+    28                                      start:
+    29 00000000 B800000000                      mov eax, 0
+    30 00000005 BB00000000                      mov ebx, 0
+    31 0000000A B900000000                      mov ecx, 0
+    32 0000000F BA00000000                      mov edx, 0
+    33 00000014 BE00000000                      mov esi, 0
+    34                                          ;ESI ist aktuelle position in dem array d
+    35                                          
+    36 00000019 B904000000                      mov ecx, l1
+    37 0000001E BB00000000                      mov ebx, 0
+    38                                          ;Wir benutzen EBX um den array s1 durchzulaufen
+    39                                          
+    40                                          ;In whileS1 werden die Elemente aus s1 in d getan in demselben reihenfolge
+    41                                          whileS1:
+    42 00000023 39CB                            cmp ebx, ecx
+    43                                          ; wenn ebx = ecx bedeutet es dass wir den ganzen array durchgelaufen haben
+    44 00000025 7410                            JE endWhileS1
+    45                                          
+    46 00000027 8A83[00000000]                  mov al, [s1 + ebx]
+    47 0000002D 43                              INC ebx
+    48                                          
+    49 0000002E 8886[09000000]                  mov [d + esi], al
+    50 00000034 46                              INC esi
+    51 00000035 EBEC                            JMP whileS1
+    52                                          endWhileS1:
+    53                                          
+    54 00000037 BB05000000                      mov ebx, l2
+    55 0000003C 4B                              dec ebx
+    56                                          ; EBX wird benutz im s2 im umgekehrten reihenfolge durchzulaufen
+    57                                          ; EBX beginnt mit dem wert l2 - 1 und geht bis 0 an
+    58                                  
+    59 0000003D B900000000                      mov ecx, 0
+    60 00000042 B800000000                      mov eax, 0
+    61                                          
+    62                                          ; In whileS2 werden die elemente aus s2 im d im umgekehrten Reihenfolge getan
+    63                                          whileS2:
+    64 00000047 8A83[04000000]                  mov al, [s2 + ebx]
+    65                                          ; EBX enthalt die position der Wert im s2
+    66 0000004D 8886[09000000]                  mov [d + esi], al
+    67 00000053 46                              INC esi
+    68                                          
+    69 00000054 4B                              DEC ebx
+    70 00000055 83FBFF                          cmp ebx, -1
+    71                                          ;Wenn ebx = -1 bedeutet es, dass wir durch alle Elemente aus s2 durchgelaufen haben
+    72                                          
+    73 00000058 7402                            JE endWhileS2
+    74 0000005A EBEB                            JMP whileS2
+    75                                          
+    76                                          endWhileS2:
+    77                                          
+    78 0000005C BB04000000                      mov ebx, l1
+    79 00000061 83C305                          add ebx, l2
+    80 00000064 BE00000000                      mov esi, 0
+    81                                          
+    82                                          ;Dieser while ist nur um zu sehen ob die aufgabe erfolgreich gelost wurde
+    83                                          whileD:
+    84 00000069 8A86[09000000]                  mov al, [d + esi]
+    85 0000006F 46                              INC esi
+    86 00000070 39DE                            cmp esi, ebx
+    87 00000072 7402                            JE endWhileD
+    88 00000074 EBF3                            JMP whileD
+    89                                          
+    90                                          endWhileD:
+    91                                          
+    92 00000076 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    93 00000078 FF15[00000000]                  call    [exit]       ; call exit to terminate the program
