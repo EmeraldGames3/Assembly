@@ -1,0 +1,47 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit, printf       
+     8                                  import exit msvcrt.dll    
+     9                                  import printf msvcrt.dll    
+    10                                  
+    11                                  segment data use32 class=data
+    12 00000000 1400                        a dw 20
+    13 00000002 0400                        b dw 4
+    14 00000004 51756F7469656E7420-         format db "Quotient = <%d>, Rest = <%d>", 0 ;Den format fur dem Autput
+    14 0000000D 3D203C25643E2C2052-
+    14 00000016 657374203D203C2564-
+    14 0000001F 3E00               
+    15                                  
+    16                                  ; our code starts here
+    17                                  segment code use32 class=code
+    18                                      start:
+    19 00000000 B800000000                      mov eax, 0
+    20 00000005 BB00000000                      mov ebx, 0
+    21 0000000A B900000000                      mov ecx, 0
+    22 0000000F BA00000000                      mov edx, 0
+    23                                          
+    24 00000014 66A1[00000000]                  mov ax, [a]
+    25 0000001A 6699                            cwd         ; Wir konvertieren ax auf einem double word um die division durchzufuhren
+    26 0000001C 668B1D[02000000]                mov bx, [b]
+    27 00000023 66F7F3                          div bx      ; Wir divideren a durch b ( dx: ax / bx )
+    28                                          ;Den quotient ist im ax und der rest is im dx 
+    29                                          
+    30 00000026 98                              cwde ; Wir konvertieren den quotient in einem doubleword
+    31 00000027 89C3                            mov ebx, eax ; Wir speichern den quotien im ebx um eax wieder zu benutzen
+    32                                          
+    33 00000029 6689D0                          mov ax, dx; Wir tun den Rest im ax
+    34 0000002C 98                              cwde ; Wir konvertieren den Rest in einem doubleword
+    35                                          
+    36 0000002D 50                              push eax; eax -> Rest: 3
+    37 0000002E 53                              push ebx; ebx -> Quotient: 5
+    38 0000002F 68[04000000]                    push dword format
+    39                                          ; Wir fugen den parametern der funktion printf auf dem stack im ungekehrten reihenfolge
+    40 00000034 FF15[00000000]                  call [printf]
+    41 0000003A 83C40C                          add esp, 4 * 3 ; Wir befreien die Parametern auf dem Stack, 4*3 da es drei doublewords sind
+    42                                          
+    43 0000003D 6A00                            push    dword 0
+    44 0000003F FF15[00000000]                  call    [exit]

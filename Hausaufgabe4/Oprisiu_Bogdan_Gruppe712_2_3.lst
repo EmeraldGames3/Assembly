@@ -1,0 +1,128 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit, fopen, fclose, fread, printf
+     8                                  import exit msvcrt.dll    
+     9                                  import printf msvcrt.dll    
+    10                                  import fopen msvcrt.dll    
+    11                                  import fclose msvcrt.dll    
+    12                                  import fread msvcrt.dll    
+    13                                  
+    14                                  ; our data is declared here (the variables needed by our program)
+    15                                  segment data use32 class=data
+    16 00000000 696E7075742E747874-         fileName db "input.txt", 0 ; der name des files den wir lesen werden 
+    16 00000009 00                 
+    17 0000000A 7200                        accesMode db "r", 0        ; acces mode
+    18 0000000C FFFFFFFF                    fileDescriptor dd -1       ; variable um den file descriptor zu behalten
+    19 00000010 00000000                    readCharacters dd 0        ; anzahl der gelesenen charaktern
+    20                                      len equ 100     
+    21 00000014 00<rept>                    buffer times (len + 1) db 0; string das dem text behalt
+    22 00000079 257300                      format db "%s", 0
+    23 0000007C 45732073696E642025-         format2 db "Es sind %d gerade Ziffern", 0 ; format fur dem autput auf dem bildschirm
+    23 00000085 642067657261646520-
+    23 0000008E 5A69666665726E00   
+    24                                  
+    25                                  ; our code starts here
+    26                                  segment code use32 class=code
+    27                                      start:
+    28 00000000 B800000000                      mov eax, 0
+    29 00000005 BB00000000                      mov ebx, 0 ;counter fur geraden Zifern
+    30 0000000A BA00000000                      mov edx, 0
+    31                                          
+    32 0000000F 68[0A000000]                    push dword accesMode
+    33 00000014 68[00000000]                    push dword fileName
+    34 00000019 FF15[00000000]                  call [fopen]
+    35 0000001F 83C408                          add esp, 4*2
+    36                                          ;Wir offnen den file
+    37                                          
+    38 00000022 83F800                          cmp eax, 0
+    39 00000025 7461                            je end
+    40                                          ;Wenn der File nicht gefunden wurde beendet der Programm
+    41                                          
+    42 00000027 A3[0C000000]                    mov [fileDescriptor], eax
+    43                                          ;Wir sparen den file descriptor des files
+    44                                          
+    45                                          whileReadFromFile:
+    46                                              ;In diesem while lesen wir die charaktern aus dem File
+    47                                              ;Wir brauchen einen while da den File mehr als 100 Charaktern enthalten kann
+    48                                          
+    49 0000002C FF35[0C000000]                      push dword [fileDescriptor]
+    50 00000032 6A64                                push dword len
+    51 00000034 6A01                                push dword 1
+    52 00000036 68[14000000]                        push dword buffer
+    53 0000003B FF15[00000000]                      call [fread]
+    54 00000041 83C410                              add esp, 4*4
+    55                                              ;Wir lesen zwischen 0 und 100 Charaktern aus dem File
+    56                                          
+    57 00000044 83F800                              cmp eax, 0
+    58 00000047 743F                                je end
+    59                                              ;Wenn wir nichts aus dem File mehr lesen konnen, dann beenden wir dem while
+    60                                              
+    61                                              ;push dword buffer
+    62                                              ;push dword format
+    63                                              ;call [printf]
+    64                                              ;add esp, 4*2
+    65                                              
+    66 00000049 A3[10000000]                        mov [readCharacters], eax
+    67                                              ;Wir sparen den Anzahl der gelesenen Charaktern aus dem File
+    68                                              
+    69 0000004E B800000000                          mov eax, 0
+    70 00000053 BA00000000                          mov edx, 0
+    71                                              
+    72 00000058 BE00000000                              mov esi, 0
+    73                                                  ;Wir benutzen esi um den vektor buffer durchzulaufen
+    74                                                  ;Buffer enthalt die gelesenen Charaktern
+    75                                              
+    76                                                  while:
+    77                                                      ;Diesem While bestimmt wie viele geraden Ziffern sich im buffer befinden
+    78                                                      
+    79 0000005D BA00000000                                  mov edx, 0
+    80 00000062 8A96[14000000]                              mov dl, [buffer + esi]
+    81                                              
+    82                                                      ;Wir prufen ob den aktuellen char in dem vektor eine Ziffer ist
+    83 00000068 80FA30                                      cmp dl, '0'
+    84 0000006B 720E                                        jb nichtZiffer
+    85                                              
+    86 0000006D 80FA39                                      cmp dl, '9'
+    87 00000070 7F09                                        jg nichtZiffer
+    88                                                      
+    89                                                      ;Wenn der Charakter eine Ziffer ist mussen wir prufen ob es auch gerade ist
+    90 00000072 88D0                                        mov al, dl
+    91 00000074 2C30                                        sub al, '0'
+    92                                                      
+    93                                                      ;Wir prufen ob diese Ziffer gerade oder ungerade ist
+    94 00000076 A801                                        test al, 1
+    95 00000078 7501                                        jnz nichtGerade ; Wenn der Resultat 0 ist, dann ist diese Ziffer gerade
+    96                                                      
+    97 0000007A 43                                          inc ebx 
+    98                                                      ;Die Ziffer ist gerade, also wir mussen den counter inkrementieren
+    99                                                      
+   100                                                      nichtGerade:
+   101                                                      nichtZiffer:
+   102                                              
+   103 0000007B 46                                          inc esi
+   104 0000007C 3B35[10000000]                              cmp esi, [readCharacters]
+   105 00000082 74A8                                        je whileReadFromFile
+   106                                              
+   107 00000084 EBD7                                    jmp while
+   108                                          
+   109 00000086 EBA4                            jmp whileReadFromFile
+   110                                          
+   111                                      end:
+   112                                      
+   113 00000088 53                              push dword ebx
+   114 00000089 68[7C000000]                    push dword format2
+   115 0000008E FF15[00000000]                  call [printf]
+   116 00000094 83C408                          add esp, 4*2
+   117                                          ;Wir zeigen auf dem Bildschirm den Anzahl von geraden Ziffern in dem File
+   118                                          
+   119 00000097 FF35[0C000000]                  push dword [fileDescriptor]
+   120 0000009D FF15[00000000]                  call [fclose]
+   121 000000A3 83C404                          add esp, 4
+   122                                          ;Wir schliesen dem File am ende des Programms
+   123                                          
+   124 000000A6 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+   125 000000A8 FF15[00000000]                  call    [exit]       ; call exit to terminate the program
