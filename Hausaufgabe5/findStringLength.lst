@@ -1,0 +1,44 @@
+     1                                  bits 32 
+     2                                  
+     3                                  global start        
+     4                                  
+     5                                  extern exit, gets, printf           
+     6                                  import exit msvcrt.dll    
+     7                                  import gets msvcrt.dll    
+     8                                  import printf msvcrt.dll    
+     9                                  
+    10                                  segment data use32 class=data
+    11 00000000 00<rept>                    s times 100 db 0
+    12 00000064 00000000                    l dd 0
+    13 00000068 537472696E673A2025-         format db "String: %s with the lenght: %d", 0Ah, 0
+    13 00000071 732077697468207468-
+    13 0000007A 65206C656E6768743A-
+    13 00000083 2025640A00         
+    14                                  
+    15                                  segment code use32 class=code
+    16                                      start:
+    17 00000000 BE00000000                      mov esi, 0
+    18                                      
+    19 00000005 68[00000000]                    push dword s
+    20 0000000A FF15[00000000]                  call [gets]
+    21 00000010 83C404                          add esp, 4*1
+    22                                          
+    23                                          while:
+    24 00000013 8A86[00000000]                      mov al, [s + esi]
+    25 00000019 3C00                                cmp al, 0
+    26 0000001B 7403                                je end
+    27                                              
+    28 0000001D 46                                  inc esi
+    29 0000001E EBF3                                jmp while
+    30                                          
+    31                                          end:
+    32 00000020 8935[64000000]                      mov [l], esi
+    33                                          
+    34 00000026 FF35[64000000]                      push dword [l]
+    35 0000002C 68[00000000]                        push dword s
+    36 00000031 68[68000000]                        push dword format
+    37 00000036 FF15[00000000]                      call [printf]     
+    38 0000003C 83C408                              add esp, 4*2       
+    39                                          
+    40 0000003F 6A00                            push    dword 0
+    41 00000041 FF15[00000000]                  call    [exit]

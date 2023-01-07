@@ -1,0 +1,101 @@
+     1                                  bits 32 
+     2                                  
+     3                                  global start        
+     4                                  
+     5                                  extern exit, gets, printf
+     6                                  import exit msvcrt.dll
+     7                                  import gets msvcrt.dll
+     8                                  import printf msvcrt.dll
+     9                                  
+    10                                  segment data use32 class=data
+    11 00000000 00<rept>                    s times 100 db 0
+    12 00000064 01000000                    isNegative dd 1
+    13 00000068 537472696E673A2025-         formatPrintString db "String: %s", 0Ah, 0
+    13 00000071 730A00             
+    14 00000074 4E756D6265723A2025-         formatPrintNumbers db "Number: %d", 0Ah, 0
+    14 0000007D 640A00             
+    15                                  
+    16                                  segment code use32 class=code
+    17                                      start:
+    18 00000000 BE00000000                      mov esi, 0
+    19                                      
+    20 00000005 68[00000000]                    push dword s
+    21 0000000A FF15[00000000]                  call [gets]
+    22 00000010 83C404                          add esp, 4*1
+    23                                              
+    24 00000013 B800000000                      mov eax, 0
+    25 00000018 BB00000000                      mov ebx, 0
+    26 0000001D BE00000000                      mov esi, 0
+    27 00000022 B90A000000                      mov ecx, 10
+    28                                          
+    29                                          whileBuildNumbers:
+    30                                      
+    31 00000027 BB00000000                          mov ebx, 0
+    32 0000002C 8A9E[00000000]                      mov bl, [s + esi]
+    33                                              
+    34 00000032 80FB00                              cmp bl, 0
+    35 00000035 7456                                je endwhileBuildNumbers
+    36                                              
+    37 00000037 80FB2D                              cmp bl, '-'
+    38 0000003A 743E                                je negative
+    39                                              
+    40 0000003C 80FB30                              cmp bl, '0'
+    41 0000003F 7C14                                jl notNumber
+    42 00000041 80FB39                              cmp bl, '9'
+    43 00000044 770F                                ja notNumber
+    44                                              
+    45                                              isNumber:
+    46 00000046 80EB30                                  sub bl, '0'
+    47 00000049 B90A000000                              mov ecx, 10
+    48 0000004E F7E9                                    imul ecx; edx:eax = eax * 10
+    49                                                  ;eigentlich eax = eax*10, da wir edx nicht beachten
+    50                                                  ;Das ist weil wir doublewords benutzen
+    51                                                  
+    52 00000050 01D8                                    add eax, ebx
+    53                                                  
+    54 00000052 46                                      inc esi
+    55 00000053 EBD2                                    jmp whileBuildNumbers
+    56                                                  
+    57                                              notNumber:
+    58 00000055 83F800                                  cmp eax, 0
+    59 00000058 741D                                    je dontPritWhile
+    60                                                  
+    61                                                  printWhile:
+    62 0000005A F72D[64000000]                              imul dword[isNegative]
+    63                                                  
+    64 00000060 50                                          push eax
+    65 00000061 68[74000000]                                push dword formatPrintNumbers
+    66 00000066 FF15[00000000]                              call [printf]
+    67 0000006C 83C40C                                      add esp, 4*3
+    68 0000006F B800000000                                  mov eax, 0
+    69                                                          
+    70 00000074 46                                          inc esi
+    71 00000075 EBB0                                        jmp whileBuildNumbers
+    72                                              
+    73                                                  dontPritWhile:
+    74 00000077 46                                          inc esi
+    75 00000078 EBAD                                        jmp whileBuildNumbers
+    76                                                      
+    77                                              negative:
+    78 0000007A B9FFFFFFFF                              mov ecx, -1
+    79 0000007F 890D[64000000]                          mov [isNegative], ecx
+    80 00000085 B90A000000                              mov ecx, 10
+    81                                                  
+    82 0000008A 46                                      inc esi
+    83 0000008B EB9A                                    jmp whileBuildNumbers
+    84                                              
+    85                                          endwhileBuildNumbers:
+    86 0000008D 83F800                              cmp eax, 0
+    87 00000090 7415                                je dontPritEnd
+    88                                          
+    89 00000092 F72D[64000000]                      imul dword[isNegative]
+    90                                          
+    91 00000098 50                                  push eax
+    92 00000099 68[74000000]                        push dword formatPrintNumbers
+    93 0000009E FF15[00000000]                      call [printf]
+    94 000000A4 83C40C                              add esp, 4*3
+    95                                              
+    96                                              dontPritEnd:
+    97                                          
+    98 000000A7 6A00                            push    dword 0
+    99 000000A9 FF15[00000000]                  call    [exit]

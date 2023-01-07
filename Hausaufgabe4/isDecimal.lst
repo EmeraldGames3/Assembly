@@ -41,11 +41,11 @@
     40                                              
     41 0000002F 46                                  inc esi
     42 00000030 83FE0B                              cmp esi, l
-    43 00000033 7402                                je end
+    43 00000033 7402                                je endWhile
     44                                              
     45 00000035 EBE2                            jmp while
     46                                          
-    47                                          end:
+    47                                          endWhile:
     48                                          
     49 00000037 53                                  push dword ebx
     50 00000038 68[0B000000]                        push dword format

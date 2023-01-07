@@ -1,0 +1,45 @@
+     1                                  bits 32
+     2                                  
+     3                                  global start        
+     4                                  
+     5                                  extern exit, fopen, fprintf, fclose
+     6                                  import exit msvcrt.dll
+     7                                  import fopen msvcrt.dll
+     8                                  import fprintf msvcrt.dll
+     9                                  import fclose msvcrt.dll
+    10                                  
+    11                                  segment data use32 class=data
+    12 00000000 6D61782E74787400            fileName db "max.txt", 0
+    13 00000008 7700                        accesMode db "w", 0
+    14 0000000A FFFFFFFF                    fileDescriptor dd -1
+    15 0000000E 00000000                    max dd 0
+    16 00000012 446572206D6178696D-         text db "Der maximum ist %x", 0
+    16 0000001B 756D20697374202578-
+    16 00000024 00                 
+    17                                  
+    18                                  
+    19                                  segment code use32 class=code
+    20                                      start:
+    21 00000000 68[08000000]                    push dword accesMode
+    22 00000005 68[00000000]                    push dword fileName
+    23 0000000A FF15[00000000]                  call [fopen]
+    24 00000010 83C408                          add esp, 4*2
+    25                                          
+    26 00000013 A3[0A000000]                    mov [fileDescriptor], eax
+    27                                          
+    28 00000018 83F800                          cmp eax, 0
+    29 0000001B 7429                            je end
+    30                                          
+    31 0000001D FF35[0E000000]                  push dword [max]
+    32 00000023 68[12000000]                    push dword text
+    33 00000028 FF35[0A000000]                  push dword [fileDescriptor]
+    34 0000002E FF15[00000000]                  call [fprintf]
+    35 00000034 83C408                          add esp, 4*2
+    36                                          
+    37 00000037 FF35[0A000000]                  push dword [fileDescriptor]
+    38 0000003D FF15[00000000]                  call [fclose]
+    39 00000043 83C404                          add esp, 4
+    40                                          
+    41                                      end:
+    42 00000046 6A00                            push    dword 0
+    43 00000048 FF15[00000000]                  call    [exit]
